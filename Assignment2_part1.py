@@ -53,8 +53,9 @@ def main():
     personData = processData(csvData)
     while True:
         try:
-            user_id = int(input("Enter an ID to lookup (negative number or 0 to exit): "))
-            if user_id <= 0:
+            user_input = input("Enter an ID number: ")
+            user_id = int(user_input)
+            if user_id < 0:
                 break
             result = displayPerson(user_id, personData)
             print(result)
