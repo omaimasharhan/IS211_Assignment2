@@ -3,64 +3,78 @@ import urllib.request
 import logging
 import datetime
 
-def downloadData(url):
 
-    response = urllib.request.urlopen(url)
-    data = response.read()
-    response.close()
-    return data
+def downloadData(url):
+    """
+    Reads data from a URL and returns the data as a string
+
+    :param url: The URL of the data file.
+    :return: The content of the URL.
+    """
+    try:
+        with urllib.request.urlopen(url) as response:
+            return response.read().decode('utf-8')
+    except urllib.error.URLError as e:
+        print(f"Error downloading data: {str(e)}")
+        exit(1)
+
 
 def processData(file_content):
-    data_dict = {}
-    logger = logging.getLogger('assignment2')
-    lines = file_content.decode('utf-8').split('\n')
-    for line_num, line in enumerate(lines, start=1):
-        fields = line.split(',')
-        if len(fields) >= 3:
-            person_id = fields[0]
-            name = fields[1]
-            birthday_str = fields[2]
-            try:
-                birthday_date = datetime.datetime.strptime(birthday_str, '%d/%m/%Y').date()
-                data_dict[person_id] = (name, birthday_date)
-            except ValueError:
-                logger.error(f"Error processing line #{line_num} for ID #{person_id}")
+    """
+    Processes the data file and returns a dictionary mapping person's ID to (name, birthday).
 
-    return data_dict
+    :param file_content: The content of the data file.
+    :return: A dictionary containing person data.
+    """
+    result_dict = {}
+    lines = file_content.split("\n")
+    for i, record in enumerate(lines):
+        items = record.split(",")
+        if items[0] == "id":
+            continue
+        try:
+            id = int(items[0])
+            name = items[1]
+            date_str = items[2]
+            birthday = datetime.datetime.strptime(date_str, "%d/%m/%Y")
+            result_dict[id] = (name, birthday)
+        except (ValueError, IndexError, datetime.datetime.strptime) as e:
+            logging.error(f"Error processing line #{i + 1}: {str(e)}")
+    return result_dict
+
 
 def displayPerson(id, personData):
+    """
+    Displays information about a person based on their ID.
+
+    :param id: The ID of the person to display.
+    :param personData: The dictionary containing person data.
+    """
     if id in personData:
         name, birthday = personData[id]
-        formatted_birthday = birthday.strftime("%Y-%m-%d")
-        return f"Person #{id} is {name} with a birthday of {formatted_birthday}"
+        print(f"{name} was born on {birthday:%Y-%m-%d}")
     else:
-        return "No user found with that id"
+        print("No user found with that id")
 
-def main():
-    parser = argparse.ArgumentParser(description="Process a CSV file from a URL.")
-    parser.add_argument("--url", required=True, help="URL to fetch CSV data")
-    args = parser.parse_args()
 
-    try:
-        csvData = downloadData(args.url)
-    except Exception as e:
-        print(f"Error downloading data: {e}")
-        return
+def main(url):
+    print(f"Running main with URL = {url}...")
+    url_data = downloadData(url)
+    data_dict = processData(url_data)
 
-    logging.basicConfig(filename="errors.log", level=logging.ERROR, format="%(message)s")
-    logger = logging.getLogger('assignment2')
-
-    personData = processData(csvData)
     while True:
         try:
-            user_input = input("Enter an ID number: ")
-            user_id = int(user_input)
-            if user_id < 0:
+            user_input = int(input("Enter an ID to lookup (<= 0 to exit): "))
+            if user_input <= 0:
                 break
-            result = displayPerson(user_id, personData)
-            print(result)
+            displayPerson(user_input, data_dict)
         except ValueError:
             print("Invalid input. Please enter a valid ID.")
 
+
 if __name__ == "__main__":
-    main()
+    """Main entry point"""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--url", help="URL to the datafile", type=str, required=True)
+    args = parser.parse_args()
+    main(args.url)
