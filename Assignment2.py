@@ -3,14 +3,8 @@ import urllib.request
 import logging
 import datetime
 
-
 def downloadData(url):
-    """
-    Reads data from a URL and returns the data as a string
 
-    :param url: The URL of the data file.
-    :return: The content of the URL.
-    """
     try:
         with urllib.request.urlopen(url) as response:
             return response.read().decode('utf-8')
@@ -20,12 +14,7 @@ def downloadData(url):
 
 
 def processData(file_content):
-    """
-    Processes the data file and returns a dictionary mapping person's ID to (name, birthday).
 
-    :param file_content: The content of the data file.
-    :return: A dictionary containing person data.
-    """
     result_dict = {}
     lines = file_content.split("\n")
     for i, record in enumerate(lines):
@@ -44,17 +33,12 @@ def processData(file_content):
 
 
 def displayPerson(id, personData):
-    """
-    Displays information about a person based on their ID.
 
-    :param id: The ID of the person to display.
-    :param personData: The dictionary containing person data.
-    """
     if id in personData:
         name, birthday = personData[id]
         print(f"{name} was born on {birthday:%Y-%m-%d}")
     else:
-        print("No user found with that id")
+        print("No user found with this id")
 
 
 def main(url):
@@ -64,7 +48,7 @@ def main(url):
 
     while True:
         try:
-            user_input = int(input("Enter an ID to lookup (<= 0 to exit): "))
+            user_input = int(input("Enter an ID (<= 0 to exit): "))
             if user_input <= 0:
                 break
             displayPerson(user_input, data_dict)
