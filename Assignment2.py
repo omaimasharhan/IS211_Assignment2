@@ -12,7 +12,6 @@ def downloadData(url):
         print(f"Error downloading data: {str(e)}")
         exit(1)
 
-
 def processData(file_content):
 
     result_dict = {}
@@ -25,9 +24,12 @@ def processData(file_content):
             id = int(items[0])
             name = items[1]
             date_str = items[2]
-            birthday = datetime.datetime.strptime(date_str, "%d/%m/%Y")
-            result_dict[id] = (name, birthday)
-        except (ValueError, IndexError, datetime.datetime.strptime) as e:
+            try:
+                birthday = datetime.datetime.strptime(date_str, "%d/%m/%Y")
+                result_dict[id] = (name, birthday)
+            except ValueError as e:
+                logging.error(f"Error parsing date on line #{i + 1}: {str(e)}")
+        except (ValueError, IndexError) as e:
             logging.error(f"Error processing line #{i + 1}: {str(e)}")
     return result_dict
 
@@ -38,7 +40,7 @@ def displayPerson(id, personData):
         name, birthday = personData[id]
         print(f"{name} was born on {birthday:%Y-%m-%d}")
     else:
-        print("No user found with this id")
+        print("No user found with that id")
 
 
 def main(url):
@@ -61,4 +63,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", help="URL to the datafile", type=str, required=True)
     args = parser.parse_args()
+
+    # Configure the logging module to write errors to a file
+    logging.basicConfig(filename="error.log", level=logging.ERROR)
+
     main(args.url)
