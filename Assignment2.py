@@ -63,8 +63,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", help="URL to the datafile", type=str, required=True)
     args = parser.parse_args()
-
-    # Configure the logging module to write errors to a file
     logging.basicConfig(filename="error.log", level=logging.ERROR)
 
     main(args.url)
